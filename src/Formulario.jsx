@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 
-function Formulario({ onSubmit }) {
-  const [form, setForm] = useState({
+function Formulario({ onSubmit, dadosIniciais }) {
+  const [form, setForm] = useState(
+    dadosIniciais || {
     nome: "",
     email: "",
     telefone: "",
@@ -16,6 +17,13 @@ function Formulario({ onSubmit }) {
     empresa: "",
     experiencia: "",
   });
+
+  useEffect(() => {
+    if (dadosIniciais) {
+      setForm(dadosIniciais);
+    }
+
+  }, [dadosIniciais]);
 
   // Máscara de CPF
   const formatarCPF = (valor) => {
@@ -183,18 +191,6 @@ function Formulario({ onSubmit }) {
           <option value="pleno">+ 10 anos</option>
         </select>
       </div>
-
-
-      {/* Gênero */}
-      {/* <div className="mb-3">
-        <label>Gênero:</label>
-        <select name="genero" value={form.genero} onChange={handleChange} required>
-          <option value="">Selecione</option>
-          <option value="Feminino">Feminino</option>
-          <option value="Masculino">Masculino</option>
-          <option value="Prefiro não informar">Prefiro não informar</option>
-        </select>
-      </div> */}
 
       <button type="submit">Enviar Inscrição</button>
     </form>

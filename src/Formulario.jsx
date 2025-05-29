@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function Formulario({ onSubmit, dadosIniciais }) {
   const [form, setForm] = useState(
@@ -6,17 +7,25 @@ function Formulario({ onSubmit, dadosIniciais }) {
     nome: "",
     email: "",
     telefone: "",
-    cep: "",
-    logradouro: "",
-    bairro: "",
-    cidade: "",
+    pais: "",
     estado: "",
+    municipio: "",
+    // cep: "",
+    // logradouro: "",
+    // bairro: "",
+    // cidade: "",
+    // estado: "",
     cpf: "",
     genero: "",
     profissao: "",
     empresa: "",
     experiencia: "",
   });
+
+  const [paises, setPaises] = useState([]);
+  const [estados, setEstados] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
 
   useEffect(() => {
     if (dadosIniciais) {
@@ -25,9 +34,67 @@ function Formulario({ onSubmit, dadosIniciais }) {
 
   }, [dadosIniciais]);
 
-  // Máscara de CPF
-  const formatarCPF = (valor) => {
-    return valor
+  // Busca Países
+  useEffect(() => {
+  axios.get("https://restcountries.com/v3.1/all")
+    .then((res) => {
+      const nomesPaises = res.data
+        .map((pais) => pais.name.common)
+        .sort();
+      setPaises(nomesPaises);
+    })
+    .catch((err) => console.error("Erro ao buscar países:", err));
+}, []);
+
+  // Busca Estados
+  useEffect(() => {
+    axios.get("https://servicodados.ibge.gov.br/api/v1/localidades/estados")
+      .then((res) => {
+        const estadosOrdenados = res.data.sort((a, b) => a.nome.localeCompare(b.nome));
+        setEstados(estadosOrdenados);
+      })
+      .catch((err) => console.error("Erro ao buscar estados:", err));
+  }, []);
+
+  // Busca Munícipios
+  useEffect(() => {
+    if (form.estado) {
+      const estadoSelecionado = estados.find(estado => estado.sigla === form.estado);
+      if (estadoSelecionado) {
+        axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado.id}/municipios`)
+          .then((res) => {
+            const municipiosOrdenados = res.data.sort((a, b) => a.nome.localeCompare(b.nome));
+            setMunicipios(municipiosOrdenados);
+          })
+          .catch((err) => console.error("Erro ao buscar municípios:", err));
+        }
+      }
+    }, [form.estado, estados]);
+    
+    // // Busca endereço pelo CEP
+    // useEffect(() => {
+    //   const cep = form.cep.replace(/\D/g, ""); // remove tudo que não for número
+    //   if (cep.length === 8) {
+    //     fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    //       .then((res) => res.json())
+    //       .then((data) => {
+    //         if (!data.erro) {
+    //           setForm((prev) => ({ 
+    //             ...prev, 
+    //             logradouro: data.logradouro,
+    //             bairro: data.bairro,
+    //             cidade: data.localidade,
+    //             estado: data.uf
+    //           }));
+    //         }
+    //       });
+    //   }
+    // }, [form.cep]);
+
+
+    // Máscara de CPF
+    const formatarCPF = (valor) => {
+      return valor
       .replace(/\D/g, "")                           // Remove o que não é dígito
       .replace(/(\d{3})(\d)/, '$1.$2')            // Coloca ponto após os 3 primeiros dígitos
       .replace(/(\d{3})(\d)/, '$1.$2')           // Coloca ponto após os 6 primeiros dígitos
@@ -47,12 +114,12 @@ function Formulario({ onSubmit, dadosIniciais }) {
 
   // Máscara de CEP
 
-  const formatarCEP = (valor) => {
-    return valor
-      .replace(/\D/g, '')                        // Remove dígitos
-      .replace(/(\d{2})(\d)/, '$1.$2')           // Adiciona ponto após os 2 primeiros números
-      .replace(/(\d{3})(\d{1,3})$/, '$1-$2')     // Adiciona traço antes dos 3 últimos números
-  }
+  // const formatarCEP = (valor) => {
+  //   return valor
+  //     .replace(/\D/g, '')                        // Remove dígitos
+  //     .replace(/(\d{2})(\d)/, '$1.$2')           // Adiciona ponto após os 2 primeiros números
+  //     .replace(/(\d{3})(\d{1,3})$/, '$1-$2')     // Adiciona traço antes dos 3 últimos números
+  // }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,33 +133,12 @@ function Formulario({ onSubmit, dadosIniciais }) {
       novoValor = formatarTelefone(value);
     }
 
-    if (name == "cep") {
-      novoValor = formatarCEP(value);
-    }
+    // if (name == "cep") {
+    //   novoValor = formatarCEP(value);
+    // }
 
     setForm((prev) => ({ ...prev, [name]: novoValor}));
   };
-
-
-  // Busca endereço pelo CEP
-  useEffect(() => {
-    const cep = form.cep.replace(/\D/g, ""); // remove tudo que não for número
-    if (cep.length === 8) {
-      fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data.erro) {
-            setForm((prev) => ({ 
-              ...prev, 
-              logradouro: data.logradouro,
-              bairro: data.bairro,
-              cidade: data.localidade,
-              estado: data.uf
-            }));
-          }
-        });
-    }
-  }, [form.cep]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -111,6 +157,39 @@ function Formulario({ onSubmit, dadosIniciais }) {
       <div className="mb-3">
         <label>Email:</label>
         <input type="email" name="email" value={form.email} onChange={handleChange} required />
+      </div>
+
+      {/* País */}
+       <div className="mb-3">
+        <label>País:</label>
+        <select name="pais" value={form.pais} onChange={handleChange} required>
+          <option value="">Selecione</option>
+          {paises.map((pais) => (
+            <option key={pais} value={pais}>{pais}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Estado */}
+      <div className="mb-3">
+        <label>Estado:</label>
+        <select name="estado" value={form.estado} onChange={handleChange} required>
+          <option value="">Selecione</option>
+          {estados.map((estado) => (
+            <option key={estado.id} value={estado.sigla}>{estado.nome}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Munícipio */}
+      <div className="mb-3">
+        <label>Município:</label>
+        <select name="cidade" value={form.cidade} onChange={handleChange} required>
+          <option value="">Selecione</option>
+          {municipios.map((municipio) => (
+            <option key={municipio.id} value={municipio.nome}>{municipio.nome}</option>
+          ))}
+        </select>
       </div>
 
       {/* Telefone */}
@@ -136,14 +215,14 @@ function Formulario({ onSubmit, dadosIniciais }) {
         </select>
       </div>
 
-      {/* CEP */}
+      {/* CEP
       <div className="mb-3">
         <label>CEP:</label>
         <input type="text" name="cep" value={form.cep} onChange={handleChange} required />
-      </div>
+      </div> */}
 
       {/* Endereço (preenchido automaticamente) */}
-      <div className="mb-3">
+      {/* <div className="mb-3">
         <label>Logradouro:</label>
         <input type="text" name="logradouro." value={form.logradouro} onChange={handleChange} required />
       </div>
@@ -166,8 +245,7 @@ function Formulario({ onSubmit, dadosIniciais }) {
       <div className="mb-3">
         <label>Estado:</label>
         <input type="text" name="estado." value={form.estado} onChange={handleChange} required />
-      </div>
-
+      </div> */}
 
       {/* Profissão */}
       <div className="mb-3">

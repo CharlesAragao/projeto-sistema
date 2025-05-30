@@ -10,11 +10,6 @@ function Formulario({ onSubmit, dadosIniciais }) {
     pais: "",
     estado: "",
     municipio: "",
-    // cep: "",
-    // logradouro: "",
-    // bairro: "",
-    // cidade: "",
-    // estado: "",
     cpf: "",
     genero: "",
     profissao: "",
@@ -71,35 +66,15 @@ function Formulario({ onSubmit, dadosIniciais }) {
       }
     }, [form.estado, estados]);
     
-    // // Busca endereço pelo CEP
-    // useEffect(() => {
-    //   const cep = form.cep.replace(/\D/g, ""); // remove tudo que não for número
-    //   if (cep.length === 8) {
-    //     fetch(`https://viacep.com.br/ws/${cep}/json/`)
-    //       .then((res) => res.json())
-    //       .then((data) => {
-    //         if (!data.erro) {
-    //           setForm((prev) => ({ 
-    //             ...prev, 
-    //             logradouro: data.logradouro,
-    //             bairro: data.bairro,
-    //             cidade: data.localidade,
-    //             estado: data.uf
-    //           }));
-    //         }
-    //       });
-    //   }
-    // }, [form.cep]);
-
 
     // Máscara de CPF
     const formatarCPF = (valor) => {
-      return valor
+      const numeros = valor.replace(/\D/g, "").slice(0, 11);
+      return numeros
       .replace(/\D/g, "")                           // Remove o que não é dígito
       .replace(/(\d{3})(\d)/, '$1.$2')            // Coloca ponto após os 3 primeiros dígitos
       .replace(/(\d{3})(\d)/, '$1.$2')           // Coloca ponto após os 6 primeiros dígitos
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2')     // Coloca traço antes dos 2 últimos digitos 
-
   };
 
   // Máscara de Telefone (formato celular em DDD)
@@ -111,15 +86,6 @@ function Formulario({ onSubmit, dadosIniciais }) {
       .replace(/(\d{5})(\d)/, '$1-$2')           // Adiciona traço após os 5 primeiros dígitos do número
       .substring(0, 15)                          // Limita o comprimento
   };
-
-  // Máscara de CEP
-
-  // const formatarCEP = (valor) => {
-  //   return valor
-  //     .replace(/\D/g, '')                        // Remove dígitos
-  //     .replace(/(\d{2})(\d)/, '$1.$2')           // Adiciona ponto após os 2 primeiros números
-  //     .replace(/(\d{3})(\d{1,3})$/, '$1-$2')     // Adiciona traço antes dos 3 últimos números
-  // }
 
   const handleChange = (e) => {
     const { name, value } = e.target;

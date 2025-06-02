@@ -1,8 +1,7 @@
 // services.js
-import { getFirestore, collection, addDoc } from "firebase/firestore";
-import app from "./firebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
+import  { db }  from "./firebaseConfig";
 
-const db = getFirestore(app);
 
 // Gerar número de inscrição baseado na data e hora atual
 function gerarNumeroInscricao() {
@@ -14,10 +13,10 @@ function gerarNumeroInscricao() {
 export async function salvarInscricao(dados) {
   try {
     const numero = gerarNumeroInscricao();
-    await addDoc(collection(db, "inscricoes"), dados),{
+    await addDoc(collection(db, "inscricoes"), {
       ...dados,
       numero,
-    };
+  });
     console.log("Inscrição salva com sucesso! ID:", numero);
     return numero;
   } catch (e) {

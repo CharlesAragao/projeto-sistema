@@ -20,6 +20,15 @@ function Formulario({ onSubmit, dadosIniciais }) {
   const [paises, setPaises] = useState([]);
   const [estados, setEstados] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+  const [cupom, setCupom] = useState("");
+  const [desconto, setDesconto] = useState(0);
+  const [mensagemCupom, setMensagemCupom] = useState("");
+
+  const cuponsValidos = {
+      GRUPO10: 10,
+      GRUPO20: 20,
+      GRUPO30: 30,
+  };
 
 
   useEffect(() => {
@@ -106,9 +115,21 @@ function Formulario({ onSubmit, dadosIniciais }) {
     setForm((prev) => ({ ...prev, [name]: novoValor}));
   };
 
+  const aplicarCupom = () => {
+    const valor = cuponsValidos[cupom.toUpperCase()];
+    if (valor) {
+      setDesconto(valor);
+      setMensagemCupom(`Cupom aplicado: ${valor}% de desconto`);
+    } else {
+      setDesconto(0);
+      setMensagemCupom("Cupom inválido");
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(form);
+    const dadosComDesconto = { ...form, cupom, desconto };
+    onSubmit(dadosComDesconto);
   };
 
   return (
@@ -236,6 +257,15 @@ function Formulario({ onSubmit, dadosIniciais }) {
         </select>
       </div>
 
+      {/* Cupom de Desconto */}
+      <div className="mb-3">
+        <label>Cupom de Desconto (se tiver):</label>
+        <input type="text" value={cupom} onChange={(e) => setCupom(e.target.value)}/>
+        <button type="button" onClick={aplicarCupom}>Aplicar</button>
+        {mensagemCupom && <p>{mensagemCupom}</p>}
+      </div>
+
+      {/* Botão final */}
       <button type="submit">Enviar Inscrição</button>
     </form>
   );

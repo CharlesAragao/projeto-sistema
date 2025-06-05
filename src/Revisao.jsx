@@ -1,5 +1,6 @@
 
 import React from "react";
+import Pagamento from "./pagamento";
 
 function Revisao({ dados, onEditar, onConfirmar }) {
     return (

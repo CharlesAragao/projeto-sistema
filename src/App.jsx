@@ -4,15 +4,16 @@ import Revisao from "./Revisao";
 import Confirmacao from "./Confirmacao";
 import Login from "./Pages/Login";
 import ListaInscricoes from "./Pages/ListaInscricoes";
+import Pagamento from "./Pagamento";
 import { salvarInscricao } from "./services";
+import "./App.css"; // Importa estilos personalizados
 
 function App() {
   const [dadosParciais, setDadosParciais] = useState(null);
   const [inscrito, setInscrito] = useState(null);
-  const [fase, setFase] = useState("formulario"); // fases: formulario, revisao, confirmacao
-  const [admin, setAdmin] = useState(null); // se um admin está logado
-  const [mostrarLogin, setMostrarLogin] = useState(false); // Controla exibição do formulário de login
-
+  const [fase, setFase] = useState("formulario");
+  const [admin, setAdmin] = useState(null);
+  const [mostrarLogin, setMostrarLogin] = useState(false);
 
   const handleSubmit = (dados) => {
     setDadosParciais(dados);
@@ -22,7 +23,7 @@ function App() {
   const confirmarInscricao = async () => {
     const id = await salvarInscricao(dadosParciais);
     setInscrito({ ...dadosParciais, numero: id });
-    setFase("confirmacao");
+    setFase("pagamento");
   };
 
   const handleEditar = () => {
@@ -30,29 +31,20 @@ function App() {
   };
 
   const handleLogin = (user) => {
-    setAdmin(user); // usuário logado como admin
-    setMostrarLogin(false); // Esconde o formulário após login
+    setAdmin(user);
+    setMostrarLogin(false);
   };
 
   const handleLogout = () => {
-    setAdmin(null); // desloga o admin
+    setAdmin(null);
   };
 
-  return (
+   return (
     <div className="container">
       <h1>Formulário de Inscrição</h1>
 
-      {/* Área de login/admin */}
       {!admin ? (
-        <>
-          {!mostrarLogin ? (
-            <button className="btn btn-primary mb-3" id="login" onClick={() => setMostrarLogin(true)}>
-              Login do Administrador
-            </button>
-          ) : (
-            <Login onLogin={handleLogin} />
-          )}
-        </>
+        <Login onLogin={handleLogin} />
       ) : (
         <div>
           <p>Administrador logado: {admin.email}</p>
@@ -61,13 +53,16 @@ function App() {
         </div>
       )}
 
-      {/* Fluxo normal do usuário */}
       {!admin && fase === "formulario" && (
         <Formulario onSubmit={handleSubmit} dadosIniciais={dadosParciais} />
       )}
 
       {!admin && fase === "revisao" && dadosParciais && (
         <Revisao dados={dadosParciais} onConfirmar={confirmarInscricao} onEditar={handleEditar} />
+      )}
+
+      {!admin && fase === "pagamento" && inscrito && (
+        <Pagamento dados={inscrito} onFinalizar={() => setFase("confirmacao")} />
       )}
 
       {!admin && fase === "confirmacao" && inscrito && (
